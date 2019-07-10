@@ -21,7 +21,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
     def init(self):
         try:
-            chanCurrent = self.getChannelObject('Current')
+            chanCurrent = self.getChannelObject('machCurrent')
             chanCurrent.connectSignal('update', self.valueChanged)
             self.setIsReady(True)
         except KeyError:
@@ -49,7 +49,7 @@ class MachCurrent(BaseHardwareObjects.Device):
 
     def getCurrent(self):
         try:
-            value = self.getChannelObject('Current').getValue()
+            value = self.getChannelObject('machCurrent').getValue()
         except Exception as e:
             logging.getLogger('HWR').exception(e)
             value = -1

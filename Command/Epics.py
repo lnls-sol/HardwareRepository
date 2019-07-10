@@ -1,6 +1,8 @@
 import logging
 import weakref
 import copy
+import gevent
+import time
 
 # LNLS
 # from . import saferef
@@ -24,6 +26,7 @@ class EpicsCommand(CommandObject):
 
         self.pv_name = pv_name
         self.read_as_str = kwargs.get("read_as_str", False)
+        self.auto_monitor = kwargs.get("auto_monitor", True)
         self.pollers = {}
         self.__valueChangedCallbackRef = None
         self.__timeoutCallbackRef = None
@@ -43,17 +46,22 @@ class EpicsCommand(CommandObject):
             )
             return
 
-        self.pv = epics.PV(pv_name, auto_monitor=True)
+        logging.getLogger('HWR').debug("EpicsCommand: creating pv %s: read_as_str = %s", self.pv_name, self.read_as_str)
+
+        # LNLS
+        #self.pv = epics.PV(pv_name, auto_monitor = True)
+        self.pv = epics.PV(pv_name, auto_monitor = self.auto_monitor)
+        time.sleep(0.01)
         self.pv_connected = self.pv.connect()
-        self.valueChanged(self.pv.get(as_string=self.read_as_str))
-        logging.getLogger("HWR").debug(
-            "EpicsCommand: creating pv %s: read_as_str = %s",
-            self.pv_name,
-            self.read_as_str,
-        )
+
+        # LNLS
+        if (self.pv_connected):
+            self.valueChanged(self.pv.get(as_string = self.read_as_str))
+        else:
+            logging.getLogger('HWR').error("EpicsCommand: Error connecting to pv %s.", self.pv_name)
 
     def __call__(self, *args, **kwargs):
-        self.emit("commandBeginWaitReply", (str(self.name()),))
+        self.emit('commandBeginWaitReply', (str(self.name()), ))
 
         if len(args) > 0 and len(self.arglist) > 0:
             # arguments given both given in command call _AND_ in the xml file
@@ -74,24 +82,35 @@ class EpicsCommand(CommandObject):
             if len(args) == 0:
                 # no arguments available -> get the pv's current value
                 try:
-                    ret = self.pv.get(as_string=self.read_as_str)
-                except BaseException:
-                    logging.getLogger("HWR").error(
-                        "%s: an error occured when calling Epics command %s",
-                        str(self.name()),
-                        self.pv_name,
-                    )
+                    ret = self.pv.get(as_string = self.read_as_str, timeout=0.2)
+                    # LNLS
+                    # If a try to get info return a None object, retry once more...
+                    if (ret is None):
+                        ret = self.reconnect()
+                except TypeError:
+                    # LNLS
+                    # When a cached info is lost internally Epics return a TypeError: NoneType...
+                    ret = self.reconnect()
+
+                    if (ret is not None):
+                        self.emit('commandReplyArrived', (ret, str(self.name())))
+                        return ret
+                except:
+                    logging.getLogger('HWR').error("%s: an error occured when calling Epics command %s", str(self.name()), self.pv_name)
                 else:
                     self.emit("commandReplyArrived", (ret, str(self.name())))
                     return ret
             else:
                 # use the given argument to change the pv's value
                 try:
+                    # douglas.beniz 21/JAN/2018 - START
+                    #logging.getLogger('HWR').error("PV put command: %s", str(self.pv_name))
+                    # douglas.beniz 21/JAN/2018 - END
                     # LNLS
-                    # self.pv.put(args[0], wait = True)
-                    self.pv.put(args[0], wait=False)
-                except BaseException:
-                    logging.getLogger("HWR").error(
+                    #self.pv.put(args[0], wait = True)
+                    self.pv.put(args[0], wait = args[1])
+                except:
+                    logging.getLogger('HWR').error(
                         "%s: an error occured when calling Epics command %s",
                         str(self.name()),
                         self.pv_name,
@@ -103,16 +122,20 @@ class EpicsCommand(CommandObject):
 
     def valueChanged(self, value):
         try:
-            callback = self.__valueChangedCallbackRef()
-        except BaseException:
+            # LNLS
+            #callback = self.__valueChangedCallbackRef()
+            callback = self.__valueChangedCallbackRef(value)
+        except:
             pass
         else:
             if callback is not None:
                 callback(value)
 
     def onPollingError(self, exception, poller_id):
+        print("onPollingError")
         # try to reconnect the pv
         self.pv.connect()
+
         poller = Poller.get_poller(poller_id)
         if poller is not None:
             try:
@@ -121,18 +144,14 @@ class EpicsCommand(CommandObject):
                 pass
 
     def getPvValue(self):
+        # douglas.beniz 21/JAN/2018 - START
+        #logging.getLogger('HWR').error("PV get: %s", str(self.pv_name))
+        # douglas.beniz 21/JAN/2018 - END
         # wrapper function to pv.get() in order to supply additional named parameter
-        return self.pv.get(as_string=self.read_as_str)
+        return self.pv.get(as_string = self.read_as_str)
 
-    def poll(
-        self,
-        pollingTime=500,
-        argumentsList=(),
-        valueChangedCallback=None,
-        timeoutCallback=None,
-        direct=True,
-        compare=True,
-    ):
+    def poll(self, pollingTime=500, argumentsList=(), valueChangedCallback=None,
+        timeoutCallback=None, direct=True, compare=True):
         self.__valueChangedCallbackRef = saferef.safe_ref(valueChangedCallback)
 
         # store the call to get as a function object
@@ -157,6 +176,23 @@ class EpicsCommand(CommandObject):
     def isConnected(self):
         return self.pv_connected
 
+    # LNLS
+    def reconnect(self):
+        # douglas.beniz 21/JAN/2018 - START
+        #logging.getLogger('HWR').error("PV reconnect command: %s", str(self.pv_name))
+        # douglas.beniz 21/JAN/2018 - END
+
+        # Clear Epics cache
+        epics.ca._cache.clear()
+        #epics.ca._put_done.clear()
+
+        # Reconnect PV
+        self.pv = epics.PV(self.pv_name, auto_monitor = self.auto_monitor)
+        self.pv_connected = self.pv.connect()
+
+        # Return the result of get()
+        return self.pv.get(as_string = self.read_as_str, timeout=0.2)
+
 
 class EpicsChannel(ChannelObject):
     """Emulation of a 'Epics channel' = an Epics command + polling"""
@@ -179,11 +215,20 @@ class EpicsChannel(ChannelObject):
         self.emit("update", value)
 
     def getValue(self):
+        # douglas.beniz 21/JAN/2018 - START
+        #logging.getLogger('HWR').error("PV get channel: %s", str(self.command.pv_name))
+        # douglas.beniz 21/JAN/2018 - END
         return self.command()
 
     # LNLS
-    def setValue(self, value):
-        self.command(value)
+    def setValue(self, value, wait=False):
+        # douglas.beniz 21/JAN/2018 - START
+        #logging.getLogger('HWR').error("PV put channel: %s", str(self.command.pv_name))
+        # douglas.beniz 21/JAN/2018 - END
+        self.command(value, wait)
 
     def isConnected(self):
         return self.command.isConnected()
+
+    def reconnect(self):
+        self.command.reconnect()

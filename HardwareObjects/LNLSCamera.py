@@ -15,6 +15,7 @@ from HardwareRepository import BaseHardwareObjects
 from PyQt4 import QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
+from threading import Thread
 
 
 #-----------------------------------------------------------------------------
@@ -47,6 +48,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.qImage = None
         self.qImageHalf = None
         self.qtPixMap = None
+        self.delay = None
 
 
     def _init(self):
@@ -61,9 +63,16 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.centring_status = {"valid": False}
         self.snapshots_procedure = None
 
+    def poll(self):
+        self.imageGenerator(self.delay)
+        logging.getLogger("HWR").debug('poll!')
+        print('poll!')
 
     def imageGenerator(self, delay):
+        logging.getLogger("HWR").debug('self.liveState = ' + str(self.liveState))
+        print('self.liveState = ' + str(self.liveState))
         while self.liveState:
+            logging.getLogger("HWR").debug('while cam')
             self.getCameraImage()
             gevent.sleep(delay)
 
@@ -72,20 +81,22 @@ class LNLSCamera(BaseHardwareObjects.Device):
         # Get the image from uEye camera IOC
         self.imgArray = self.getValue(CAMERA_DATA)
 
-        logging.getLogger("user_level_log").error("imgArray is None = " + str(self.imgArray is None))
-        logging.getLogger("user_level_log").error("ARRAY_SIZE = " + str(ARRAY_SIZE))
-        logging.getLogger("user_level_log").error("len(self.imgArray) = " + str(len(self.imgArray)))
-
+        logging.getLogger("HWR").debug("imgArray = " + str(self.imgArray))
+        print("imgArray = " + str(self.imgArray))
+        #logging.getLogger("user_level_log").error("ARRAY_SIZE = " + str(ARRAY_SIZE))
+        if (self.imgArray is not None):
+            logging.getLogger("HWR").debug("len(self.imgArray) = " + str(len(self.imgArray)))
+            print("len(self.imgArray) = " + str(len(self.imgArray)))
         if ((self.imgArray is None) or (len(self.imgArray) != ARRAY_SIZE)):
             logging.getLogger().exception("%s - Error in array lenght!" % (self.__class__.__name__))
             logging.getLogger("user_level_log").error("Impossible to refresh camera!")
             # Stop camera to be in live mode
             self.liveState = False
-            return -1
+            return 0
 
         # self.qImage has 1280 x 1024 size (width x height)
         self.qImage = QtGui.QImage(self.imgArray, 1280, 1024, 1280*32/8, QtGui.QImage.Format_RGB32)
-        self.imgArray = None
+        #self.imgArray = None
 
         try:
             self.qTransform = QtGui.QTransform()
@@ -115,15 +126,40 @@ class LNLSCamera(BaseHardwareObjects.Device):
                 self.refreshing = False
         except:
             logging.getLogger().exception("%s - Except in scale and rotate!" % (self.__class__.__name__))
-            return -1
+            return 0
 
-        self.qtPixMap = QtGui.QPixmap(self.qImageCropped)
-        self.qImageCropped = None
+        #self.qtPixMap = QtGui.QPixmap(self.qImageCropped)
 
-        self.emit("imageReceived", self.qtPixMap)
+        #self.emit("imageReceived", self.qtPixMap)
 
         # Keep qtPixMap available for snapshot... do do NOT set it to 'None'
         #self.qtPixMap = None
+
+        # CONVERTING FROM QIMAGE TO NP ARRAY
+        '''
+        incomingImage = self.qImageCropped.convertToFormat(QtGui.QImage.Format.Format_RGB32)
+
+        width = incomingImage.width()
+        height = incomingImage.height()
+
+        ptr = incomingImage.constBits()
+        arr = np.array(ptr).reshape(height, width, 4)  #  Copies the data
+
+        self.emit("imageReceived", arr)
+        '''
+        self.qImageCropped = None
+
+        # Bring it what it wants
+        try:
+            img = open("/opt/mxcube3/mxcube3/HardwareRepository/tests/xml-web/mxcube_sample_snapshot.jpeg", 'rb').read()
+            #img = base64.b64encode(img)
+            self.emit("imageReceived", img, 659, 493)
+            logging.getLogger("HWR").debug('imageReceived img = ' + str(img[0:10]))
+            print('imageReceived img = ' + str(img[0:10]))
+        except:
+            img = None
+            logging.getLogger("HWR").debug('imageReceived img FAILED')
+            print('imageReceived img FAILED')
 
         return 0
 
@@ -252,24 +288,33 @@ class LNLSCamera(BaseHardwareObjects.Device):
 
     def refresh_camera(self):
         logging.getLogger("user_level_log").error("Resetting camera, please, wait a while...")
+        print("refresh_camera")
 
         # Start a new thread to don't freeze UI
         self.refreshgen = gevent.spawn(self.refresh_camera_procedure)
 
 
     def setLive(self, live):
+        print('setLive')
         try:
             if live and self.liveState == live:
                 return
 
-            if live:
-                self.imagegen = gevent.spawn(self.imageGenerator, float(int(self.getProperty("interval"))/1000.0))
-            else:
-                if self.imagegen:
-                    self.imagegen.kill()
-                self.stop_camera()
-
             self.liveState = live
+
+            if live:
+                #self.imagegen = gevent.spawn(self.imageGenerator, float(int(self.getProperty("interval"))/1000.0))
+                #logging.getLogger("HWR").debug("Start camera polling!")
+                logging.getLogger("HWR").info("LNLSCamera is going to poll images")
+                print("LNLSCamera is going to poll images")
+                self.delay = float(int(self.getProperty("interval"))/1000.0)
+                thread = Thread(target=self.poll)
+                thread.daemon = True
+                thread.start()
+            else:
+                #if self.imagegen:
+                #    self.imagegen.kill()
+                self.stop_camera()
 
             return True
         except:

@@ -15,6 +15,8 @@ from HardwareRepository import BaseHardwareObjects
 from PyQt4 import QtGui, QtCore
 from PIL import Image
 from PIL.ImageQt import ImageQt
+from threading import Thread
+import numpy as np
 
 
 #-----------------------------------------------------------------------------
@@ -47,6 +49,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.qImage = None
         self.qImageHalf = None
         self.qtPixMap = None
+        self.delay = None
 
 
     def _init(self):
@@ -61,6 +64,10 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.centring_status = {"valid": False}
         self.snapshots_procedure = None
 
+    def poll(self):
+        self.imageGenerator(self.delay)
+        logging.getLogger("HWR").info('LNLS camera image polling has started.')
+        #print('Camera image polling has started.')
 
     def imageGenerator(self, delay):
         while self.liveState:
@@ -72,10 +79,6 @@ class LNLSCamera(BaseHardwareObjects.Device):
         # Get the image from uEye camera IOC
         self.imgArray = self.getValue(CAMERA_DATA)
 
-        logging.getLogger("user_level_log").error("imgArray is None = " + str(self.imgArray is None))
-        logging.getLogger("user_level_log").error("ARRAY_SIZE = " + str(ARRAY_SIZE))
-        logging.getLogger("user_level_log").error("len(self.imgArray) = " + str(len(self.imgArray)))
-
         if ((self.imgArray is None) or (len(self.imgArray) != ARRAY_SIZE)):
             logging.getLogger().exception("%s - Error in array lenght!" % (self.__class__.__name__))
             logging.getLogger("user_level_log").error("Impossible to refresh camera!")
@@ -83,47 +86,31 @@ class LNLSCamera(BaseHardwareObjects.Device):
             self.liveState = False
             return -1
 
-        # self.qImage has 1280 x 1024 size (width x height)
-        self.qImage = QtGui.QImage(self.imgArray, 1280, 1024, 1280*32/8, QtGui.QImage.Format_RGB32)
-        self.imgArray = None
+        if self.refreshing:
+            logging.getLogger("user_level_log").info("Camera was refreshed!")
+            self.refreshing = False
 
         try:
-            self.qTransform = QtGui.QTransform()
-            self.qTransform.rotate(90)
-
-            # self.qImage now has 1024 x 1280 size (width x height)
-            self.qImage = self.qImage.transformed(self.qTransform)
-
-            # self.qImage now has 640 x 800 size (width x height)
-            self.qImageHalf = self.qImage.scaledToWidth(640);
-
-            # Clear memory
-            self.qImage = None
-
-            # Resize - OBSOLETE
-            #self.qImageHalf = self.qImage.scaled(640, 512, QtCore.Qt.KeepAspectRatioByExpanding)
-
-            # Crop image, position (x, y) = 0, 144; (w, h) =  640, 512
-            # the size of image rectangle in UI
-            self.qImageCropped = self.qImageHalf.copy(0, 144, 640, 512)
-
-            # Clear memory
-            self.qImageHalf = None
-
-            if (self.refreshing):
-                logging.getLogger("user_level_log").info("Camera was refreshed!")
-                self.refreshing = False
+            # Get data
+            width = 1280
+            height = 1024
+            data = self.imgArray
+            arr = np.array(data).reshape(height, width, 4)
+            # Convert data to rgb image
+            img = Image.fromarray(arr)
+            img_rot = img.rotate(angle=270, expand=True)
+            img_rgb = img_rot.convert('RGB')
+            # Get binary image
+            with BytesIO() as f:
+                img_rgb.save(f, format='JPEG')
+                f.seek(0)
+                img_bin_str = f.getvalue()
+            # Sent image to gui
+            self.emit("imageReceived", img_bin_str, height, width)
+            #logging.getLogger("HWR").debug('Got camera image: ' + \
+            #str(img_bin_str[0:10]))
         except:
-            logging.getLogger().exception("%s - Except in scale and rotate!" % (self.__class__.__name__))
-            return -1
-
-        self.qtPixMap = QtGui.QPixmap(self.qImageCropped)
-        self.qImageCropped = None
-
-        self.emit("imageReceived", self.qtPixMap)
-
-        # Keep qtPixMap available for snapshot... do do NOT set it to 'None'
-        #self.qtPixMap = None
+            logging.getLogger("user_level_log").error('Error while formatting camera image')
 
         return 0
 
@@ -252,24 +239,28 @@ class LNLSCamera(BaseHardwareObjects.Device):
 
     def refresh_camera(self):
         logging.getLogger("user_level_log").error("Resetting camera, please, wait a while...")
+        print("refresh_camera")
 
         # Start a new thread to don't freeze UI
         self.refreshgen = gevent.spawn(self.refresh_camera_procedure)
 
 
     def setLive(self, live):
+        print('setLive')
         try:
             if live and self.liveState == live:
                 return
 
-            if live:
-                self.imagegen = gevent.spawn(self.imageGenerator, float(int(self.getProperty("interval"))/1000.0))
-            else:
-                if self.imagegen:
-                    self.imagegen.kill()
-                self.stop_camera()
-
             self.liveState = live
+
+            if live:
+                logging.getLogger("HWR").info("LNLSCamera is going to poll images")
+                self.delay = float(int(self.getProperty("interval"))/1000.0)
+                thread = Thread(target=self.poll)
+                thread.daemon = True
+                thread.start()
+            else:
+                self.stop_camera()
 
             return True
         except:

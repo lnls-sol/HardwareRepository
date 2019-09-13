@@ -65,25 +65,23 @@ class LNLSCamera(BaseHardwareObjects.Device):
         self.snapshots_procedure = None
 
     def poll(self):
+        logging.getLogger("HWR").debug('LNLS Camera image acquiring has started.')
         self.imageGenerator(self.delay)
-        logging.getLogger("HWR").info('LNLS camera image polling has started.')
-        #print('Camera image polling has started.')
 
     def imageGenerator(self, delay):
         while self.liveState:
             self.getCameraImage()
             gevent.sleep(delay)
+        logging.getLogger("HWR").debug('LNLS Camera image acquiring has stopped.')
 
 
     def getCameraImage(self):
         # Get the image from uEye camera IOC
         self.imgArray = self.getValue(CAMERA_DATA)
-
         if ((self.imgArray is None) or (len(self.imgArray) != ARRAY_SIZE)):
-            logging.getLogger().exception("%s - Error in array lenght!" % (self.__class__.__name__))
-            logging.getLogger("user_level_log").error("Impossible to refresh camera!")
-            # Stop camera to be in live mode
-            self.liveState = False
+            logging.getLogger("HWR").error("%s - Error in array lenght!" % (self.__class__.__name__))
+            logging.getLogger("HWR").error("Impossible to refresh camera!")
+            # Return error for this frame, but cam remains live for new frames
             return -1
 
         if self.refreshing:

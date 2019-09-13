@@ -52,11 +52,11 @@ class EpicsCommand(CommandObject):
         #self.pv = epics.PV(pv_name, auto_monitor = True)
         self.pv = epics.PV(pv_name, auto_monitor = self.auto_monitor)
         time.sleep(0.01)
-        self.pv_connected = self.pv.connect()
+        self.pv_connected = self.pv.connect(timeout=0.1)
 
         # LNLS
         if (self.pv_connected):
-            self.valueChanged(self.pv.get(as_string = self.read_as_str))
+            self.valueChanged(self.pv.get(as_string = self.read_as_str, timeout=0.1))
         else:
             logging.getLogger('HWR').error("EpicsCommand: Error connecting to pv %s.", self.pv_name)
 
@@ -95,8 +95,8 @@ class EpicsCommand(CommandObject):
                     if (ret is not None):
                         self.emit('commandReplyArrived', (ret, str(self.name())))
                         return ret
-                except:
-                    logging.getLogger('HWR').error("%s: an error occured when calling Epics command %s", str(self.name()), self.pv_name)
+                except Exception as e:
+                    logging.getLogger('HWR').error("%s: an error occured when getting value with Epics command %s", str(self.name()), self.pv_name)
                 else:
                     self.emit("commandReplyArrived", (ret, str(self.name())))
                     return ret
@@ -110,11 +110,10 @@ class EpicsCommand(CommandObject):
                     #self.pv.put(args[0], wait = True)
                     self.pv.put(args[0], wait = args[1])
                 except:
-                    logging.getLogger('HWR').error(
-                        "%s: an error occured when calling Epics command %s",
-                        str(self.name()),
-                        self.pv_name,
-                    )
+                    logging.getLogger('HWR').error("%s: an error occured when \
+                    putting a value with Epics command %s",
+                    str(self.name()),
+                    self.pv_name)
                 else:
                     self.emit("commandReplyArrived", (0, str(self.name())))
                     return 0
@@ -188,10 +187,10 @@ class EpicsCommand(CommandObject):
 
         # Reconnect PV
         self.pv = epics.PV(self.pv_name, auto_monitor = self.auto_monitor)
-        self.pv_connected = self.pv.connect()
-
+        self.pv_connected = self.pv.connect(timeout=0.2)
         # Return the result of get()
-        return self.pv.get(as_string = self.read_as_str, timeout=0.2)
+        ret = self.pv.get(as_string = self.read_as_str, timeout=0.2)
+        return ret
 
 
 class EpicsChannel(ChannelObject):

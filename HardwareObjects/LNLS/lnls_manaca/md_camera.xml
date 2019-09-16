@@ -1,9 +1,20 @@
-<device class="MDCameraMockup">
-  <username>Camera Microdiff</username>
-  <specversion>130.235.94.114:kappa</specversion>
-  <channel type="spec" name="UdiffVersion">UDIFF_VERSION</channel>
-  <tangoname>i9113/microdiff/newMD</tangoname>
-  <interval>100</interval>
-  <remote_interval>100</remote_interval>
-  <image_name>mxcube_sample_snapshot.jpeg</image_name>
+<device class="LNLS.LNLSCamera">
+    <!-- Channels -->
+    <channel type="epics" name="epicsCameraSample_data" auto_monitor="False">MXROB:image_ueye:ArrayData</channel>
+    <channel type="epics" name="epicsCameraSample_back">MXROB:image_ueye:ArrayCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_en_back">MXROB:image_ueye:EnableCallbacks</channel>
+    <channel type="epics" name="epicsCameraSample_acq_stop">MXROB:ueye:AcquisitionStop</channel>
+    <channel type="epics" name="epicsCameraSample_acq_start">MXROB:ueye:AcquisitionStart</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time">MXROB:ueye:AcquireTime</channel>
+    <channel type="epics" name="epicsCameraSample_acq_time_rbv">MXROB:ueye:AcquireTime_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_gain">MXROB:ueye:Gain</channel>
+    <channel type="epics" name="epicsCameraSample_gain_rbv">MXROB:ueye:Gain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain">MXROB:ueye:AutoGain</channel>
+    <channel type="epics" name="epicsCameraSample_auto_gain_rbv">MXROB:ueye:AutoGain_RBV</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second">MXROB:ueye:FramesPerSecond</channel>
+    <channel type="epics" name="epicsCameraSample_frames_per_second_rbv">MXROB:ueye:FramesPerSecond</channel>
+    <!-- Properties -->
+    <username>Camera</username>
+    <source>/usr/local/src/mxcube/ExampleFiles/fakeimg.jpg</source>
+    <interval>67</interval>
 </device>

@@ -1,3 +1,3 @@
-<object class="MachInfoMockup" role="mach-info">
-</object>
-
+<device class = "MachCurrent">
+  <channel type="epics" name="Current" polling="500">LNLS:ANEL:corrente</channel>
+</device>

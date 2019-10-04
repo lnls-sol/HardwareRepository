@@ -1,0 +1,15 @@
+<device class="LNLS.LNLSMotor">
+    <!-- Channels -->
+    <channel type="epics" name="epicsMotor_val">IOC:m2.VAL</channel>
+    <channel type="epics" name="epicsMotor_rlv">IOC:m2.RLV</channel>
+    <channel type="epics" name="epicsMotor_rbv" polling="500">IOC:m2.RBV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">IOC:m2.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">IOC:m2.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">IOC:m2.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">IOC:m2.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">IOC:m2.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">IOC:m2.EGU</channel>
+    <!-- Properties -->
+    <username>Kappa</username>
+    <motor_name>Kappa</motor_name>
+</device>

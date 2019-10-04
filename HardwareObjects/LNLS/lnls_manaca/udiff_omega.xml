@@ -1,14 +1,14 @@
 <device class="LNLS.LNLSMotor">
     <!-- Channels -->
-    <channel type="epics" name="epicsMotor_val">IOC:m1.VAL</channel>
-    <channel type="epics" name="epicsMotor_rlv">IOC:m1.RLV</channel>
-    <channel type="epics" name="epicsMotor_rbv" polling="500">IOC:m1.RBV</channel>
-    <channel type="epics" name="epicsMotor_dmov" polling="500">IOC:m1.DMOV</channel>
-    <channel type="epics" name="epicsMotor_stop">IOC:m1.STOP</channel>
-    <channel type="epics" name="epicsMotor_velo">IOC:m1.VELO</channel>
-    <channel type="epics" name="epicsMotor_dllm">IOC:m1.DLLM</channel>
-    <channel type="epics" name="epicsMotor_dhlm">IOC:m1.DHLM</channel>
-    <channel type="epics" name="epicsMotor_egu">IOC:m1.EGU</channel>
+    <channel type="epics" name="epicsMotor_val">MNC:m1.VAL</channel>
+    <channel type="epics" name="epicsMotor_rlv">MNC:m1.RLV</channel>
+    <channel type="epics" name="epicsMotor_rbv" polling="500">MNC:m1.RBV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">MNC:m1.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">MNC:m1.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">MNC:m1.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">MNC:m1.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">MNC:m1.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">MNC:m1.EGU</channel>
     <!-- Properties -->
     <username>Omega</username>
     <motor_name>Omega</motor_name>

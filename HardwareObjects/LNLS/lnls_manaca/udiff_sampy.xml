@@ -1,14 +1,14 @@
 <device class="LNLS.LNLSMotor">
     <!-- Channels -->
-    <channel type="epics" name="epicsMotor_val">IOC:m5.VAL</channel>
-    <channel type="epics" name="epicsMotor_rlv">IOC:m5.RLV</channel>
-    <channel type="epics" name="epicsMotor_rbv" polling="500">IOC:m5.RBV</channel>
-    <channel type="epics" name="epicsMotor_dmov" polling="500">IOC:m5.DMOV</channel>
-    <channel type="epics" name="epicsMotor_stop">IOC:m5.STOP</channel>
-    <channel type="epics" name="epicsMotor_velo">IOC:m5.VELO</channel>
-    <channel type="epics" name="epicsMotor_dllm">IOC:m5.DLLM</channel>
-    <channel type="epics" name="epicsMotor_dhlm">IOC:m5.DHLM</channel>
-    <channel type="epics" name="epicsMotor_egu">IOC:m5.EGU</channel>
+    <channel type="epics" name="epicsMotor_val">MNC:m5.VAL</channel>
+    <channel type="epics" name="epicsMotor_rlv">MNC:m5.RLV</channel>
+    <channel type="epics" name="epicsMotor_rbv" polling="500">MNC:m5.RBV</channel>
+    <channel type="epics" name="epicsMotor_dmov" polling="500">MNC:m5.DMOV</channel>
+    <channel type="epics" name="epicsMotor_stop">MNC:m5.STOP</channel>
+    <channel type="epics" name="epicsMotor_velo">MNC:m5.VELO</channel>
+    <channel type="epics" name="epicsMotor_dllm">MNC:m5.DLLM</channel>
+    <channel type="epics" name="epicsMotor_dhlm">MNC:m5.DHLM</channel>
+    <channel type="epics" name="epicsMotor_egu">MNC:m5.EGU</channel>
     <!-- Properties -->
     <username>sampy</username>
     <motor_name>CentringY</motor_name>

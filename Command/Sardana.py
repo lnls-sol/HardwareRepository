@@ -74,7 +74,7 @@ class AttributeEvent:
 class SardanaObject(object):
     _eventsQueue = Queue.Queue()
     _eventReceivers = {}
-    _eventsProcessingTimer = gevent.get_hub().loop.async()
+    _eventsProcessingTimer = gevent.get_hub().loop.async_()
 
     # start Sardana events processing timer
     _eventsProcessingTimer.start(processSardanaEvents)

@@ -24,13 +24,13 @@ my_hwr = hwr.getHardwareRepository()
 my_hwr.connect()
 print('my_hwr = ' + str(my_hwr))
 
-# Load machine info HO by xml
+# 1) Load machine info HO by xml
 print('\n\nLoading machine info')
 ho_mach_info = my_hwr.getHardwareObject('machine_info')
 print('type(ho_mach_info) = ' + str(ho_mach_info))
 print('ho_mach_info.getCurrent() = ' + str(ho_mach_info.getCurrent()))
 
-# Load a motor HO by xml
+# 2) Load a motor HO by xml
 motor_name = 'udiff_phix'
 print('\n\nLoading a motor ' + motor_name)
 ho_motor = my_hwr.getHardwareObject(motor_name)
@@ -45,12 +45,21 @@ print('new pos= ' + str(ho_motor.get_position()))
 ho_motor.move(pos)
 time.sleep(4)
 
-"""
-# Load camera HO by xml
-print('\n\nLoaing camera')
+# 3) Load camera HO by xml
+# PS: For starting AD pattern simulation:
+# caput 13SIM1:cam1:Acquire 1
+# caput 13SIM1:image1:EnableCallbacks 1
+# caput 13SIM1:cam1:ColorMode RGB1
+# caget -#100 13SIM1:image1:ArrayData
+
+print('\n\nLoading camera')
 ho_cam = my_hwr.getHardwareObject('md_camera')
 print('type(ho_cam) = ' + str(ho_cam))
 error_cam = ho_cam.getCameraImage()
 print('error = ' + str(error_cam))
 print('ho_cam.imgArray = ' + str(ho_cam.imgArray))
-"""
+print('ho_cam.get_pixel_size() = ' + str(ho_cam.get_pixel_size()))
+print('ho_cam.get_width() = ' + str(ho_cam.get_width()))
+print('ho_cam.get_pixel_size() = ' + str(ho_cam.get_height()))
+
+print('\n\nEnd of SOL config test.')

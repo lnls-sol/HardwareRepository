@@ -62,4 +62,7 @@ print('ho_cam.get_pixel_size() = ' + str(ho_cam.get_pixel_size()))
 print('ho_cam.get_width() = ' + str(ho_cam.get_width()))
 print('ho_cam.get_pixel_size() = ' + str(ho_cam.get_height()))
 
+print('\n\nLoading diffractometer')
+ho_cam = my_hwr.getHardwareObject('minidiff_mockup')
+
 print('\n\nEnd of SOL config test.')

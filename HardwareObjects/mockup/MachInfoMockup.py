@@ -36,24 +36,25 @@ import gevent
 import time
 
 from HardwareRepository import HardwareRepository as HWR
-from HardwareRepository.BaseHardwareObjects import Equipment
+from HardwareRepository.HardwareObjects.abstract.AbstractMachineInfo import (
+    AbstractMachineInfo,
+)
 
 
-class MachInfoMockup(Equipment):
+class MachInfoMockup(AbstractMachineInfo):
     default_current = 200  # milliamps
-    default_lifetime = 45  # hours Lifetime
     default_message = "Beam Delivered"
+    default_lifetime = 45  # hours Lifetime
     default_topup_remaining = 70  # seconds
 
     def __init__(self, *args):
-        Equipment.__init__(self, *args)
-
-        self.current = self.default_current
-        self.lifetime = self.default_lifetime
-        self.message = self.default_message
-        self.topup_remaining = self.default_topup_remaining
+        AbstractMachineInfo.__init__(self, *args)
 
     def init(self):
+        self._current = self.default_current
+        self._message = self.default_message
+        self._lifetime = self.default_lifetime
+        self._topup_remaining = self.default_topup_remaining
         self._run()
 
     def _run(self):
@@ -65,38 +66,43 @@ class MachInfoMockup(Equipment):
         while True:
             gevent.sleep(5)
             elapsed = time.time() - self.t0
-            self.topup_remaining = abs((self.default_topup_remaining - elapsed) % 300)
-            if self.topup_remaining < 60:
-                self.message = "ATTENTION: topup in %3d secs" % int(
-                    self.topup_remaining
+            self._topup_remaining = abs((self.default_topup_remaining - elapsed) % 300)
+            if self._topup_remaining < 60:
+                self._message = "ATTENTION: topup in %3d secs" % int(
+                    self._topup_remaining
                 )
                 self.attention = True
             else:
-                self.message = self.default_message
+                self._message = self.default_message
                 self.attention = False
-            self.current = "%3.2f mA" % (
-                self.default_current - (3 - self.topup_remaining / 100.0) * 5
+            self._current = "%3.2f mA" % (
+                self.default_current - (3 - self._topup_remaining / 100.0) * 5
             )
             values = dict()
-            values["current"] = self.current
-            values["message"] = self.message
-            values["lifetime"] = "%3.2f hours" % self.lifetime
-            values["topup_remaining"] = "%3.0f secs" % self.topup_remaining
+            values["current"] = self._current
+            values["message"] = self._message
+            values["lifetime"] = "%3.2f hours" % self._lifetime
+            values["topup_remaining"] = "%3.0f secs" % self._topup_remaining
             values["attention"] = self.attention
+            self._mach_info_dict = values
 
             self.emit("machInfoChanged", values)
 
-    def getCurrent(self):
-        return self.current
+    def get_current(self):
+        """Override method."""
+        return self._current
 
-    def getLifeTime(self):
-        return self.lifetime
+    def get_lifetime(self):
+        """Override method."""
+        return self._lifetime
 
-    def getTopUpRemaining(self):
-        return self.topup_remaining
+    def get_topup_remaining(self):
+        """Override method."""
+        return self._topup_remaining
 
-    def getMessage(self):
-        return self.message
+    def get_message(self):
+        """Override method."""
+        return self._message
 
 
 def test():
@@ -107,10 +113,11 @@ def test():
 
     conn = hwr.get_hardware_object(sys.argv[1])
 
-    print(("Machine current: ", conn.getCurrent()))
-    print(("Life time: ", conn.getLifeTime()))
-    print(("TopUp remaining: ", conn.getTopUpRemaining()))
-    print(("Message: ", conn.getMessage()))
+    print(("Machine current: ", conn.get_current()))
+    print(("Life time: ", conn.get_lifetime()))
+    print(("TopUp remaining: ", conn.get_topup_remaining()))
+    print(("Message: ", conn.get_message()))
+    print(("Values: ", conn.get_mach_info_dict()))
 
     while True:
         gevent.wait(timeout=0.1)

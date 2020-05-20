@@ -68,7 +68,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
 
     def getCameraImage(self):
         # Get the image from uEye camera IOC
-        self.imgArray = self.getValue(CAMERA_DATA)
+        self.imgArray = self.get_channel_value(CAMERA_DATA)
         if self.imgArray is None:
             logging.getLogger("HWR").error("%s - Error: null camera image!" % (self.__class__.__name__))
             # Return error for this frame, but cam remains live for new frames
@@ -110,7 +110,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
     def get_pixel_size(self):
         pixel_size = 1
         try:
-            pixel_size = self.getValue(CAMERA_IMG_PIXEL_SIZE)
+            pixel_size = self.get_channel_value(CAMERA_IMG_PIXEL_SIZE)
             if pixel_size is None or pixel_size <= 0:
                 pixel_size = 1
         except:
@@ -122,7 +122,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
     def get_width(self):
         width = 0
         try:
-            width = self.getValue(CAMERA_IMG_WIDTH)
+            width = self.get_channel_value(CAMERA_IMG_WIDTH)
             if width is None:
                 width = 0
         except:
@@ -134,7 +134,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
     def get_height(self):
         height = 0
         try:
-            height = self.getValue(CAMERA_IMG_HEIGHT)
+            height = self.get_channel_value(CAMERA_IMG_HEIGHT)
             if height is None:
                 height = 0
         except:
@@ -183,7 +183,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         gain = None
 
         try:
-            gain = self.getValue(CAMERA_GAIN_RBV)
+            gain = self.get_channel_value(CAMERA_GAIN_RBV)
         except:
             print("Error getting gain of camera...")
 
@@ -199,7 +199,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         auto = None
 
         try:
-            auto = self.getValue(CAMERA_AUTO_GAIN_RBV)
+            auto = self.get_channel_value(CAMERA_AUTO_GAIN_RBV)
         except:
             print("Error getting auto-gain of camera...")
 
@@ -216,7 +216,7 @@ class LNLSCamera(BaseHardwareObjects.Device):
         exp = None
 
         try:
-            exp = self.getValue(CAMERA_ACQ_TIME_RBV)
+            exp = self.get_channel_value(CAMERA_ACQ_TIME_RBV)
         except:
             print("Error getting exposure time of camera...")
 

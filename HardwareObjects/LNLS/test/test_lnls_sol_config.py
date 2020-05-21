@@ -47,10 +47,10 @@ time.sleep(4)
 
 # 3) Load camera HO by xml
 # PS: For starting AD pattern simulation:
-# caput 13SIM1:cam1:Acquire 1
-# caput 13SIM1:image1:EnableCallbacks 1
-# caput 13SIM1:cam1:ColorMode RGB1
-# caget -#100 13SIM1:image1:ArrayData
+# caput SOL:S:cam1:Acquire 1
+# caput SOL:S:image1:EnableCallbacks 1
+# caput SOL:S:cam1:ColorMode RGB1
+# caget -#100 SOL:S:image1:ArrayData
 
 print('\n\nLoading camera')
 ho_cam = my_hwr.getHardwareObject('md_camera')

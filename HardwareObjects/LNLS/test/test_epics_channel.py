@@ -4,5 +4,10 @@
 
 from HardwareRepository.Command.Epics import EpicsChannel
 
-ec = EpicsChannel('pv_command', 'SOL:m2')
-ec.getValue()
+ec = EpicsChannel('pv_command', 'SOL:S:m2')
+res = ec.getValue()
+print(res)
+
+ec.setValue(res + 1)
+res = ec.getValue()
+print(res)

@@ -31,26 +31,27 @@ print('type(ho_mach_info) = ' + str(ho_mach_info))
 print('ho_mach_info.getCurrent() = ' + str(ho_mach_info.getCurrent()))
 
 # 2) Load a motor HO by xml
-motor_name = 'udiff_phix'
-print('\n\nLoading a motor ' + motor_name)
+motor_name = 'udiff_kappa'
+print('\n\nLoading motor ' + motor_name)
 ho_motor = my_hwr.getHardwareObject(motor_name)
 ho_motor.init()
 print('type(ho_motor) = ' + str(ho_motor))
-pos = ho_motor.get_position()
-print('initial ho_motor.getPosition() = ' + str(pos))
-print('moving to 6')
-ho_motor.move(6)
+initial_pos = ho_motor.get_value()
+print('initial ho_motor.get_value() = ' + str(initial_pos))
+print('moving to initial pos + 1')
+ho_motor.set_value(initial_pos + 1)
 time.sleep(4)
-print('new pos= ' + str(ho_motor.get_position()))
-ho_motor.move(pos)
+print('new pos= ' + str(ho_motor.get_value()))
+print('moving to initial pos ({})'.format(initial_pos))
+ho_motor.set_value(initial_pos)
 time.sleep(4)
 
 # 3) Load camera HO by xml
 # PS: For starting AD pattern simulation:
-# caput SOL:S:cam1:Acquire 1
-# caput SOL:S:image1:EnableCallbacks 1
-# caput SOL:S:cam1:ColorMode RGB1
-# caget -#100 SOL:S:image1:ArrayData
+#caput SOL:S:cam1:Acquire 1
+#caput SOL:S:image1:EnableCallbacks 1
+#caput SOL:S:cam1:ColorMode RGB1
+#caget -#100 SOL:S:image1:ArrayData
 
 print('\n\nLoading camera')
 ho_cam = my_hwr.getHardwareObject('md_camera')

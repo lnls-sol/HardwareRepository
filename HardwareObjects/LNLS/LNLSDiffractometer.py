@@ -145,7 +145,8 @@ class LNLSDiffractometer(GenericDiffractometer):
             self.user_clicked_event = AsyncResult()
             x, y = self.user_clicked_event.get()
             if click < 2:
-                self.motor_hwobj_dict["phi"].set_value_relative(90)
+                print('\nNot moving anything for now...\n')
+                #self.motor_hwobj_dict["phi"].set_value_relative(90)
         self.last_centred_position[0] = x
         self.last_centred_position[1] = y
         centred_pos_dir = self._get_random_centring_position()
@@ -252,7 +253,9 @@ class LNLSDiffractometer(GenericDiffractometer):
         Descript. :
         """
         try:
-            return self.move_to_centred_position(centred_position)
+            # Not calling for now
+            #return self.move_to_centred_position(centred_position)
+            return
         except BaseException:
             logging.exception("Could not move to centred position")
 
@@ -396,3 +399,7 @@ class LNLSDiffractometer(GenericDiffractometer):
 
     def get_point_from_line(self, point_one, point_two, index, images_num):
         return point_one.as_dict()
+
+    def move_to_motors_positions(self, motors_positions, wait=False):
+        # Not moving for now
+        pass

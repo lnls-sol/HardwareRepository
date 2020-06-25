@@ -88,7 +88,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                     logging.getLogger("HWR").info("Successfully created the directory %s " % path)
             except OSError:
                 logging.getLogger("HWR").error("Creation of the directory %s failed." % path)
-            
+
             if not output_directory.endswith('/'):
                 output_directory = output_directory + '/'
             output_prefix =  data_collect_parameters['fileinfo']['prefix']
@@ -149,6 +149,12 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 logging.getLogger("HWR").info("[SCAN-UTILS] Finished scan!")
                 logging.getLogger("user_level_log").info("Finished scan!")
                 #print("[SCAN-UTILS] Finished scan!")
+
+            # Fix permissions
+            path = output_directory
+            visitor_folder = path.split('visitor')[0] + 'visitor'
+            subprocess.call(['chmod', '-R', '777', visitor_folder])
+            logging.getLogger("HWR").info("Fixed folder permissions.")
 
             '''for image in range(
                 data_collect_parameters["oscillation_sequence"][0]["number_of_images"]

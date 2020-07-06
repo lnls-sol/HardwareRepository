@@ -112,13 +112,13 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             time_float = float(data_collect_parameters['oscillation_sequence'][0]['exposure_time'])
             time = str(time_float)
 
-            prescan = ''
-            postscan = ''
+            prescan = ' '
+            postscan = ' '
 
             # flyscan-only params
             start_offset = str(0)
             end_offset = str(0)
-            aquire_period = str(time_float + 0.004) # + pilatus readout time
+            aquire_period = str(time_float + 0.0023) # + pilatus readout time
 
             command = 'flyscan -c {} -m "{}" -o {} -s --motor {} {} --start {} --end {} --step-or-points {} --time {} --prescan={} --postscan={} --start-offset {} --end-offset {} --aquire-period {}'.format(config_yml, message, output_file, motor_mnenomic, mode, start, end, step_or_points, time, prescan, postscan, start_offset, end_offset, aquire_period)
 
@@ -141,6 +141,14 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 logging.getLogger("HWR").error('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
                 print('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
 
+                # Fix permissions
+                path = output_directory
+                visitor_folder = path.split('visitor')[0] + 'visitor'
+                command = 'sshpass -f /opt/pass.txt ssh root@10.10.10.97 "chmod -R 777 {}"'.format(visitor_folder)
+                logging.getLogger("HWR").info("Fixing permissions...") 
+                res = subprocess.call(command, shell=True)
+                logging.getLogger("HWR").info("Fixed permissions for folder (%s). Return: %s" % (visitor_folder, str(res)))
+
             except BaseException:
                 logging.getLogger("HWR").error("[SCAN-UTILS] Error in calling scan.")
                 #print("[SCAN-UTILS] Error in calling scan.")
@@ -149,13 +157,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 logging.getLogger("HWR").info("[SCAN-UTILS] Finished scan!")
                 logging.getLogger("user_level_log").info("Finished scan!")
                 #print("[SCAN-UTILS] Finished scan!")
-
-            # Fix permissions
-            path = output_directory
-            visitor_folder = path.split('visitor')[0] + 'visitor'
-            subprocess.call(['chmod', '-R', '777', visitor_folder])
-            logging.getLogger("HWR").info("Fixed folder permissions.")
-
+ 
             '''for image in range(
                 data_collect_parameters["oscillation_sequence"][0]["number_of_images"]
             ):

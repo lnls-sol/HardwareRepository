@@ -890,7 +890,7 @@ class GenericDiffractometer(HardwareObject):
                 logging.getLogger("HWR").debug(
                     "Centring finished. Moving motoros to position %s" % str(motor_pos)
                 )
-                self.move_to_motors_positions(motor_pos, wait=True)
+                self.move_to_motors_positions({}, wait=True)
             except BaseException:
                 logging.exception("Could not move to centred position")
                 self.emit_centring_failed()

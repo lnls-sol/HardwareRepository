@@ -69,4 +69,8 @@ res = ho_diff.move_to_beam(800, 100)
 
 print('centred_pos_dir = ' + str(res))
 
+print('\n\nLoading zoom')
+calib_val = ho_diff.get_zoom_calibration()
+print('calib val = ' + str(calib_val))
+
 print('\n\nEnd of SOL config test.')

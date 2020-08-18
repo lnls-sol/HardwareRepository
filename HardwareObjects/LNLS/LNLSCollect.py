@@ -153,14 +153,6 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
                 logging.getLogger("HWR").error('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
                 print('[SCAN-UTILS] errors : ' + stderr.decode('utf-8'))
 
-                # Fix permissions
-                path = output_directory
-                visitor_folder = path.split('visitor')[0] + 'visitor'
-                command = 'sshpass -f /opt/pass.txt ssh root@10.10.10.97 "chmod -R 777 {}"'.format(visitor_folder)
-                logging.getLogger("HWR").info("Fixing permissions...")
-                res = subprocess.call(command, shell=True)
-                logging.getLogger("HWR").info("Fixed permissions for folder (%s). Return: %s" % (visitor_folder, str(res)))
-
             except BaseException:
                 logging.getLogger("HWR").error("[SCAN-UTILS] Error in calling scan.")
                 # print("[SCAN-UTILS] Error in calling scan.")

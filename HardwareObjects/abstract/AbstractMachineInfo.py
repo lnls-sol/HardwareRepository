@@ -26,11 +26,11 @@ from HardwareRepository.BaseHardwareObjects import HardwareObject
 __copyright__ = """ Copyright © 2020 by the MXCuBE collaboration """
 __license__ = "LGPLv3+"
 
+ABC = abc.ABCMeta("ABC", (object,), {})  # Compatible with Python 2 and 3.
 
-class AbstractMachineInfo(HardwareObject):
+
+class AbstractMachineInfo(ABC, HardwareObject):
     """Abstract machine info."""
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, name):
         HardwareObject.__init__(self, name)

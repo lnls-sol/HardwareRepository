@@ -207,11 +207,16 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
 
     def set_pilatus_det_header(self):
         # Read current params
-        logging.getLogger("HWR").info("Setting Pilatus CBF header.")
+        logging.getLogger("HWR").info("Setting Pilatus CBF header...")
         wl = self.bl_control.energy.get_wavelength()
         dd = self.bl_control.detector_distance.get_value()
         te = self.bl_control.energy.get_value()
         ft = self.bl_control.transmission.get_value()
+        try:
+            ft = ft/100  # [0, 1]
+        except Exception as e:
+            print("Error on setting Pilatus transmission: {}".format(str(e)))
+            return False
 
         # Write to det (values will be on the cbf header)
         wl_ok = self.bl_control.detector.set_wavelength(wl)
@@ -219,7 +224,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         bx_ok = self.bl_control.detector.set_beam_x(from_user=True)
         by_ok = self.bl_control.detector.set_beam_y(from_user=True)
         te_ok = self.bl_control.detector.set_threshold_energy(te)
-        ft_ok = self.bl_control.detector.set_transmission(ft/100)  # [0, 1]
+        ft_ok = self.bl_control.detector.set_transmission(ft)
 
         return wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok
 

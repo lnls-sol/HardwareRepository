@@ -32,12 +32,14 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
             energy=self.getObjectByRole("energy"),
             resolution=self.getObjectByRole("resolution"),
             detector_distance=self.getObjectByRole("detector_distance"),
-            transmission=self.getObjectByRole("transmission"),
+            transmission=self.getObjectByRole("transmission"), # Returns attenuators.
             undulators=self.getObjectByRole("undulators"),
             flux=self.getObjectByRole("flux"),
             detector=self.getObjectByRole("detector"),
             beam_info=self.getObjectByRole("beam_info"),
         )
+        # Adding this line to get transmission value:
+        self.filter_transmission = self.getObjectByRole('filter_transmission')
         self.emit("collectConnected", (True,))
         self.emit("collectReady", (True,))
 
@@ -211,9 +213,9 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         wl = self.bl_control.energy.get_wavelength()
         dd = self.bl_control.detector_distance.get_value()
         te = self.bl_control.energy.get_value()
-        ft = self.bl_control.transmission.get_value()
+        ft = self.filter_transmission.get_value()
         try:
-            ft = ft/100  # [0, 1]
+            ft = ft / 100  # [0, 1]
         except Exception as e:
             print("Error on setting Pilatus transmission: {}".format(str(e)))
             return False

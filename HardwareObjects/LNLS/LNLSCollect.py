@@ -214,6 +214,7 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         dd = self.bl_control.detector_distance.get_value()
         te = self.bl_control.energy.get_value()
         ft = self.filter_transmission.get_value()
+        om = self.diffractometer().motor_hwobj_dict["phi"].get_value()
         try:
             ft = ft / 100  # [0, 1]
         except Exception as e:
@@ -227,8 +228,9 @@ class LNLSCollect(AbstractMultiCollect, HardwareObject):
         by_ok = self.bl_control.detector.set_beam_y(from_user=True)
         te_ok = self.bl_control.detector.set_threshold_energy(te)
         ft_ok = self.bl_control.detector.set_transmission(ft)
+        om_ok = self.bl_control.detector.set_start_angle(om)
 
-        return wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok
+        return wl_ok and dd_ok and bx_ok and by_ok and te_ok and ft_ok and om_ok
 
     @task
     def take_crystal_snapshots(self, number_of_snapshots):

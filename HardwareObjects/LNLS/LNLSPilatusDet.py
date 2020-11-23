@@ -440,11 +440,11 @@ class LNLSPilatusDet(AbstractDetector):
 
         logging.getLogger("HWR").info("Setting Pilatus start angle to {}...".format(start_angle))
         self.set_channel_value(self.DET_START_ANGLE, start_angle)
-        time.sleep(0.3)
+        time.sleep(3)
 
         self.start_angle = self.get_start_angle()
 
-        if self.start_angle == start_angle:
+        if abs(self.start_angle - start_angle) < 0.0001:
             logging.getLogger("HWR").info(
                 "Pilatus start angle successfully set."
             )

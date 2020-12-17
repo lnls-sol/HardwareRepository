@@ -18,6 +18,8 @@ class LNLSPilatusDet(AbstractDetector):
     USER_BEAM_X = 'user_beam_x'
     USER_BEAM_Y = 'user_beam_y'
     DET_TRANSMISSION = 'det_transmission'
+    DET_START_ANGLE = 'det_start_angle'
+    DET_ANGLE_INCR = 'det_angle_incr'
 
     def __init__(self, name):
         """
@@ -196,11 +198,13 @@ class LNLSPilatusDet(AbstractDetector):
         # there is no need to compare the target value with the current one.
         logging.getLogger("HWR").info("Setting Pilatus wavelength...")
         self.set_channel_value(self.DET_WAVELENGTH, wavelength)
-        time.sleep(0.3)
-
+        time.sleep(0.6)
+        
+        print('WAVELENGHT WAS SET: ' + str(wavelength))
         self.wavelength = self.get_wavelength()
+        print('WAVELENGHT GOT: ' + str(self.wavelength))
 
-        if self.wavelength == wavelength:
+        if abs(self.wavelength - wavelength) < 0.0001:
             logging.getLogger("HWR").info(
                 "Pilatus wavelength successfully set."
             )
@@ -243,7 +247,7 @@ class LNLSPilatusDet(AbstractDetector):
 
         self.det_distance = self.get_detector_distance()
 
-        if self.det_distance == det_distance:
+        if abs(self.det_distance - det_distance) < 0.001:
             logging.getLogger("HWR").info(
                 "Pilatus det distance successfully set."
             )
@@ -404,7 +408,7 @@ class LNLSPilatusDet(AbstractDetector):
 
         self.transmission = self.get_transmission()
 
-        if self.transmission == transmission:
+        if abs(self.transmission - transmission) < 0.0001:
             logging.getLogger("HWR").info(
                 "Pilatus transmission successfully set."
             )
@@ -412,5 +416,79 @@ class LNLSPilatusDet(AbstractDetector):
 
         logging.getLogger("HWR").error(
             "Error while setting Pilatus transmission. Please, check the detector."
+        )
+        return False
+    
+    def get_start_angle(self):
+        """
+        Returns:
+            float: detector start angle value
+        """
+        value = float(self.get_channel_value(self.DET_START_ANGLE))
+        return value
+
+    def set_start_angle(self, start_angle):
+        """
+        Set start angle and returns whether it was successful or not.
+        """
+        try:
+            float(start_angle)
+        except Exception as e:
+            logging.getLogger("HWR").error(
+                    "Error while setting Pilatus start angle. Value must be float."
+            )
+            return False
+
+        logging.getLogger("HWR").info("Setting Pilatus start angle to {}...".format(start_angle))
+        self.set_channel_value(self.DET_START_ANGLE, start_angle)
+        time.sleep(3)
+
+        self.start_angle = self.get_start_angle()
+
+        if abs(self.start_angle - start_angle) < 0.0001:
+            logging.getLogger("HWR").info(
+                "Pilatus start angle successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus start angle. Please, check the detector."
+        )
+        return False
+    
+    def get_angle_incr(self):
+        """
+        Returns:
+            float: detector angle increment value
+        """
+        value = float(self.get_channel_value(self.DET_ANGLE_INCR))
+        return value
+
+    def set_angle_incr(self, angle_incr):
+        """
+        Set angle increment and returns whether it was successful or not.
+        """
+        try:
+            float(angle_incr)
+        except Exception as e:
+            logging.getLogger("HWR").error(
+                    "Error while setting Pilatus angle increment. Value must be float."
+            )
+            return False
+
+        logging.getLogger("HWR").info("Setting Pilatus angle increment to {}...".format(angle_incr))
+        self.set_channel_value(self.DET_ANGLE_INCR, angle_incr)
+        time.sleep(3)
+
+        self.angle_incr = self.get_angle_incr()
+
+        if abs(self.angle_incr - angle_incr) < 0.0001:
+            logging.getLogger("HWR").info(
+                "Pilatus angle increment successfully set."
+            )
+            return True
+
+        logging.getLogger("HWR").error(
+            "Error while setting Pilatus angle increment. Please, check the detector."
         )
         return False
